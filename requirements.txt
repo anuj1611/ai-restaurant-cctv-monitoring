@@ -1,0 +1,6 @@
+# Restaurant CCTV Monitoring System - Dependencies
+ultralytics>=8.0.0
+supervision>=0.18.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+shapely>=2.0.0

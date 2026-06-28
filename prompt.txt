@@ -1,0 +1,245 @@
+# 🧠 AI Agent Task: Restaurant CCTV People Monitoring System
+
+## 📌 Context
+
+You are an AI engineering assistant helping build a **computer vision system** for analyzing a restaurant CCTV feed.
+
+You have access to:
+
+* A directory containing **sample screenshots from the CCTV footage**
+* No labeled data
+* No prior codebase
+
+Your task is to **design and implement a working prototype pipeline**.
+
+---
+
+## 🎯 Objective
+
+Build a system that can:
+
+1. Track **how long a customer occupies a table**
+2. Count **how many times a waiter visits a table**
+
+---
+
+## ⚠️ Important Constraints
+
+* The CCTV camera is **fixed/static**
+* Tables are in **fixed positions**
+* The input is **video (not images)**
+* The system must work **frame-by-frame with temporal consistency**
+* DO NOT rely on single-frame reasoning (no naive detection-only logic)
+
+---
+
+## 🧱 Required System Architecture
+
+You MUST follow this pipeline:
+
+### 1. Video Processing
+
+* Use OpenCV to:
+
+  * Read video stream
+  * Extract frames
+
+---
+
+### 2. Object Detection
+
+* Use YOLOv8 (Ultralytics)
+* Detect:
+
+  * People (mandatory)
+  * Optionally waiter (if distinguishable)
+
+---
+
+### 3. Multi-Object Tracking
+
+* Use DeepSORT or ByteTrack
+* Assign **unique IDs** to each person
+* Ensure identity consistency across frames
+
+---
+
+### 4. Table Detection / Mapping (Geofencing)
+
+Using the provided screenshot:
+
+* Manually define **polygon regions for each table**
+* Each table should have a unique ID
+
+For each tracked person:
+
+* Determine if they are inside a table region
+
+---
+
+### 5. State Machine Logic (CRITICAL)
+
+Implement rule-based state machines.
+
+#### Customer State:
+
+* WALKING
+* AT_TABLE
+* LEFT
+
+Transition logic:
+
+* WALKING → AT_TABLE (if inside table zone for > N seconds)
+* AT_TABLE → WALKING (if leaves zone)
+
+---
+
+#### Waiter State:
+
+* IDLE
+* APPROACHING_TABLE
+* SERVING
+
+Transition logic:
+
+* Enter table zone → APPROACHING
+* Stay > threshold → SERVING (COUNT VISIT)
+* Leave zone → IDLE
+
+---
+
+### 6. Time Tracking
+
+For each table:
+
+* Record:
+
+  * Occupancy start time
+  * Occupancy duration
+
+---
+
+### 7. Waiter Visit Counting
+
+For each table:
+
+* Count a visit ONLY IF:
+
+  * Waiter enters table zone
+  * Stays for more than threshold time (e.g., 3–5 seconds)
+
+Ignore:
+
+* Passing by
+* Short overlaps
+
+---
+
+## 📊 Expected Output
+
+The system should produce:
+
+* Table-wise occupancy:
+
+  ```
+  Table 3 → Occupied for 12 minutes
+  ```
+
+* Waiter visit count:
+
+  ```
+  Table 3 → Waiter visits = 2
+  ```
+
+Optional:
+
+* Visual overlay on video
+* Logs in JSON format
+
+---
+
+## 🚫 What NOT to Do
+
+* Do NOT use VLMs (like Qwen, Gemma) for core logic
+* Do NOT process frames independently without tracking
+* Do NOT implement overly complex models (e.g., 4D reconstruction)
+* Do NOT skip tracking stage
+
+---
+
+## 🧰 Recommended Tech Stack
+
+* Python
+* OpenCV (video handling)
+* YOLOv8 (object detection)
+* DeepSORT / ByteTrack (tracking)
+
+---
+
+## 🧠 Key Design Principles
+
+* Detection ≠ Tracking
+* Tracking provides memory
+* Logic should be deterministic first (state machines)
+* Avoid overengineering early
+
+---
+
+## 📁 Deliverables
+
+The agent should generate:
+
+1. Working Python script:
+
+   * video → detection → tracking → logic → output
+
+2. Configurable parameters:
+
+   * table regions
+   * time thresholds
+
+3. Clean modular structure:
+
+   * detection.py
+   * tracking.py
+   * logic.py
+   * main.py
+
+---
+
+## 🔍 Additional Guidance
+
+* Use the provided screenshot to understand:
+
+  * table layout
+  * camera angle
+* Assume real-world noise:
+
+  * occlusions
+  * overlapping people
+* Prioritize robustness over complexity
+
+---
+
+## ✅ Success Criteria
+
+* Same person keeps same ID across frames
+* Table occupancy time is reasonably accurate
+* Waiter visits are counted correctly (not overcounted)
+* System runs on video without crashing
+
+---
+
+## 🚀 Future Extensions (Do NOT implement now)
+
+* Behavior prediction (LSTM / Transformer)
+* Anomaly detection
+* VLM-based summaries
+
+---
+
+## 💬 Final Instruction
+
+Focus on building a **working, stable pipeline first**.
+
+Do not attempt advanced AI models unless the basic system is complete and verified.
